@@ -144,7 +144,7 @@
             <img src="IMG_9278.jpeg" alt="Before - driveway clean" loading="lazy">
           </div>
           <div class="gallery-image placeholder">After</div>
-          <p>Driveway clean • [Street / Area]</p>
+          <p>Driveway clean • North High Point</p>
         </div>
         <div class="gallery-item">
           <div class="gallery-image placeholder">Before</div>
@@ -179,33 +179,38 @@
           </div>
         </div>
         <p class="section-intro">
-          For now this form opens your email app. Later, we can build a real
-          form that sends to your inbox.
+          This form sends directly to my inbox. You can include as much detail
+          as possible for a faster quote.
         </p>
       </div>
       <form
+        id="quote-form"
         class="contact-form"
-        action="mailto:336whiteline@gmail.com"
+        action="https://formsubmit.co/336whiteline@gmail.com"
         method="POST"
-        enctype="text/plain"
       >
+        <input type="hidden" name="_subject" value="New quote request from website" />
+        <input type="hidden" name="_captcha" value="false" />
+        <input type="hidden" name="_template" value="table" />
         <label>
           Name
-          <textarea 
-          name="name" 
-          rows="1"
-          required 
-          placeholder="Your name">
-          </textarea>
+          <input
+            type="text"
+            name="name"
+            required
+            placeholder="Your name"
+            autocomplete="name"
+          />
         </label>
         <label>
           Email
-          <textarea 
-          name="email" 
-          rows="1"
-          required 
-          placeholder="Your email address">
-          </textarea>
+          <input
+            type="email"
+            name="email"
+            required
+            placeholder="your@email.com"
+            autocomplete="email"
+          />
         </label>
         <label>
           What do you need cleaned?
@@ -216,9 +221,11 @@
             required
           ></textarea>
         </label>
-        <button type="submit" class="btn primary full-width">
-          Email me your request
+        <button id="quote-submit-button" type="submit" class="btn primary full-width">
+          <span class="button-label">Email me your request</span>
+          <span class="button-spinner" aria-hidden="true"></span>
         </button>
+        <p id="form-status" class="form-status" aria-live="polite"></p>
       </form>
     </div>
   </section>
@@ -234,6 +241,47 @@
   <script>
     // Set current year in footer
     document.getElementById("year").textContent = new Date().getFullYear();
+
+    const quoteForm = document.getElementById("quote-form");
+    const formStatus = document.getElementById("form-status");
+    const submitButton = document.getElementById("quote-submit-button");
+    const defaultButtonText = submitButton.querySelector(".button-label").textContent;
+
+    quoteForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      formStatus.textContent = "";
+      formStatus.className = "form-status";
+      submitButton.disabled = true;
+      submitButton.classList.add("is-loading");
+      submitButton.querySelector(".button-label").textContent = "Sending...";
+
+      try {
+        const response = await fetch(quoteForm.action, {
+          method: "POST",
+          body: new FormData(quoteForm),
+          headers: {
+            Accept: "application/json",
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error("Request failed");
+        }
+
+        quoteForm.reset();
+        formStatus.textContent = "Thanks, I got your request. I will reply soon.";
+        formStatus.classList.add("form-status-success");
+      } catch (error) {
+        formStatus.textContent =
+          "Something went wrong sending your request. Please text or call me at (336) 316-9639.";
+        formStatus.classList.add("form-status-error");
+      } finally {
+        submitButton.disabled = false;
+        submitButton.classList.remove("is-loading");
+        submitButton.querySelector(".button-label").textContent = defaultButtonText;
+      }
+    });
   </script>
 </body>
 </html>
